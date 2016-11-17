@@ -50,7 +50,8 @@ round() {
 
 # random 4B unsigned int
 random_uint() {
-    head -c 4 /dev/random | od -N4 -tu4 | head -1 | awk -F' ' '{print $2}'
+    # head -c 4 /dev/random | od -N4 -tu4 | head -1 | awk -F' ' '{print $2}'
+    od -An -N4 -t u4 /dev/random | awk '{print $1}'
 }
 
 
@@ -62,16 +63,29 @@ generate_inline_object_count() {
 
 # $1: data size
 send_object() {
+    # urandom due speed
+    tg_seed=$(od -An -N4 -t u4 /dev/urandom | awk '{print $1}')
     echo "Sending $1 bytes of data"
+#    tg_parameters=`cat <<-EOF
+#	on 3
+#	tcp $TARGET_IP
+#	setup
+#	arrival exponential 0.02 length exponential 576
+#	seed $tg_seed data $1
+#	EOF`
     tg_parameters=`cat <<-EOF
 	on 3
 	tcp $TARGET_IP
 	setup
-	arrival exponential 0.02 length exponential 576
-	seed 0 data $1
+	arrival exponential 0.02 length 1400
+	seed $tg_seed data $1
 	EOF`
-    while (! echo "$tg_parameters" | tg -f > /dev/null ); do
-        echo "Restarting"
+#    while (! echo "$tg_parameters" | tg -f > /dev/null ); do
+#        echo "Restarting"
+#    done
+    echo "$tg_parameters" | tg -f > /dev/null 2>&1
+    while [ $? -ne 0 ]; do
+        echo "$tg_parameters" | tg -f > /dev/null 2>&1
     done
 }
 
@@ -128,7 +142,8 @@ send_noncached_request() {
 
 generate_traffic() {
     # generate initial seed
-    init_seed=$(echo random_uint)
+    # init_seed=$(echo random_uint)
+    init_seed=$(random_uint)
     next_init=$(rg -S $init_seed | awk -F' :' '{print $2}')
 
     # generate number of non-cached and cached requests
