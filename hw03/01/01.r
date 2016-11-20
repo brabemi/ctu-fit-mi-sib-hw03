@@ -6,18 +6,17 @@ folder = "/home/brabemi/Documents/FIT/9.semestr/MI-SIB/sib/hw03/01"
 # arrival exponential 0.02 length exponential 576
 # seed3467571962 packet 1000
 
-mydata = read.table(paste(folder, "seed_3467571962.txt", sep="/"))
+#mydata = read.table(paste(folder, "seed_3467571962.txt", sep="/"))
+mydata = read.table(paste(folder, "seed_865579040_correct.txt", sep="/"))
 
 L_t = 1/0.02
 L_s = 1/576
-print(L_s)
 
-test = 0.35
-print(test)
+len = length(mydata[,1])
 
-seed = 2974291915
-times = mydata[2:1000,1]
-sizes = mydata[1:1000,2]
+seed = 865579040
+times = mydata[2:len,1]
+sizes = mydata[1:len,2]
 
 mean_t = mean(times)
 L_t_m = 1/mean_t
