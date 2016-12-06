@@ -120,18 +120,29 @@ send_noncached_request() {
     echo "Parsing time: $gamma_value"
     microsleep $gamma_value
 
+    CH_PIDS=
+
     # send all inline objects
     echo "Sending $inline_object_count inline objects"
     for (( _IOC = 0; _IOC < inline_object_count; _IOC++ )); do
         # send inline object
         random_lognormal 6.166 5.581
-        send_object $lognormal_value
+        send_object $lognormal_value &
+
+        CH_PIDS=$(echo "$CH_PIDS $!")
 
         # sleep inter-arrival time
         random_gamma 0.16 5.375
         echo "Inter-arrival time: $gamma_value"
         microsleep $gamma_value
     done
+
+    # for ch_pid in $CH_PIDS
+    # do
+    #   wait $ch_pid
+    # done
+
+    wait $CH_PIDS
 
     # wait viewing time
     random_weibull 0.484 18.534
